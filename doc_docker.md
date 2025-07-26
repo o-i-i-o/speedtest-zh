@@ -1,27 +1,26 @@
-# Using the docker image
+# 使用Docker镜像
 
-A docker version of LibreSpeed is available here: [GitHub Packages](https://github.com/librespeed/speedtest/pkgs/container/speedtest)
+LibreSpeed的Docker版本可在此处获取：[GitHub Packages](https://github.com/librespeed/speedtest/pkgs/container/speedtest)
 
-# Alpine Linux variant
+# Alpine Linux变体
 
-An Alpine Linux based docker version of LibreSpeed is also available here: [GitHub Packages](https://github.com/librespeed/speedtest/pkgs/container/speedtest) under all the tags that have the `-alpine` suffix. This variant is significantly smaller but can have slightly different behaviour due to its toolchain being based in [musl](https://en.wikipedia.org/wiki/Musl) libc as mentioned in [here](https://alpinelinux.org/about/).
+基于Alpine Linux的LibreSpeed Docker版本也可在此处获取：[GitHub Packages](https://github.com/librespeed/speedtest/pkgs/container/speedtest)，所有带有`-alpine`后缀的标签。此变体体积更小，但由于其工具链基于[musl](https://en.wikipedia.org/wiki/Musl) libc，可能会有略微不同的行为，如[此处](https://alpinelinux.org/about/)所述。
 
-## Quickstart
+## 快速开始
 
-If you just want to try it, the fastest way is:
+如果您只是想尝试一下，最快的方法是：
 
 ```shell
 docker run -p 80:8080 -d --name speedtest --rm ghcr.io/librespeed/speedtest
 ```
 
-Then go with your browser to port 80 of your server and try it out. If port 80 is already in use, adjust the first number in 80:8080 above.
-Default is to run in standalone mode.
+然后用浏览器访问服务器的80端口进行测试。如果80端口已被占用，请调整上述命令中的80:8080的第一个数字。默认以独立模式运行。
 
 ## Docker Compose
 
-In production environments we would recommend using docker-compose.
+在生产环境中，我们建议使用docker-compose。
 
-To start the container using [docker compose](https://docs.docker.com/compose/) the following `docker-compose.yml` configuration can be used:
+要使用[docker compose](https://docs.docker.com/compose/)启动容器，可以使用以下`docker-compose.yml`配置：
 
 ```yml
 version: '3.7'
@@ -43,87 +42,87 @@ services:
       #DISTANCE: "km"
       #WEBPORT: 8080
     ports:
-      - "80:8080" # webport mapping (host:container)
+      - "80:8080" # webport映射 (host:container)
 ```
 
-Please adjust the environment variables according to the intended operating mode.
+请根据预期的操作模式调整环境变量。
 
-## Standalone mode
+## 独立模式
 
-If you want to install LibreSpeed on a single server, you need to configure it in standalone mode. To do this, set the `MODE` environment variable to `standalone`.
+如果您想在单个服务器上安装LibreSpeed，需要将其配置为独立模式。为此，将`MODE`环境变量设置为`standalone`。
 
-The test can be accessed on port 80.
+测试可在80端口访问。
 
-Here's a list of additional environment variables available in this mode:
+以下是此模式下可用的其他环境变量列表：
 
-* __`TITLE`__: Title of your speed test. Default value: `LibreSpeed`
-* __`TELEMETRY`__: Whether to enable telemetry or not. If enabled, you maybe want your data to be persisted. See below. Default value: `false`
-* __`ENABLE_ID_OBFUSCATION`__: When set to true with telemetry enabled, test IDs are obfuscated, to avoid exposing the database internal sequential IDs. Default value: `false`
-* __`REDACT_IP_ADDRESSES`__: When set to true with telemetry enabled, IP addresses and hostnames are redacted from the collected telemetry, for better privacy. Default value: `false`
-* __`DB_TYPE`__: When set to one of the supported DB-Backends it will use this instead of the default sqlite database backend. TELEMETRY has to be set to `true`. Also you have to create the database as described in [doc.md](doc.md#creating-the-database). Supported backend types are:
-  * sqlite - no additional settings required
-  * mysql, postgresql - set additional env-variables:
-    * DB_HOSTNAME - Name or IP of the DB server
-    * DB_PORT (mysql only) - Port where DB is running
-    * DB_NAME - Name of the telemetry db
-    * DB_USERNAME, DB_PASSWORD - credentials of the user with read and update permissions to the db
-  * mssql - not supported in docker image yet (feel free to open a PR with that, has to be done in `entrypoint.sh`)
-* __`PASSWORD`__: Password to access the stats page. If not set, stats page will not allow accesses.
-* __`EMAIL`__: Email address for GDPR requests. Must be specified when telemetry is enabled.
-* __`DISABLE_IPINFO`__: If set to `true`, ISP info and distance will not be fetched from either [ipinfo.io](https://ipinfo.io) or the offline database. Default: value: `false`
-* __`IPINFO_APIKEY`__: API key for [ipinfo.io](https://ipinfo.io). Optional, but required if you want to use the full [ipinfo.io](https://ipinfo.io) APIs (required for distance measurement)
-* __`DISTANCE`__: When `DISABLE_IPINFO` is set to false, this specifies how the distance from the server is measured. Can be either `km` for kilometers, `mi` for miles, or an empty string to disable distance measurement. Requires an [ipinfo.io](https://ipinfo.io) API key. Default value: `km`
-* __`WEBPORT`__: Allows choosing a custom port for the included web server. Default value: `8080`. Note that you will have to expose it through docker with the -p argument. This is not the port where the service is exposed outside docker!
+* __`TITLE`__: 速度测试的标题。默认值：`LibreSpeed`
+* __`TELEMETRY`__: 是否启用遥测。如果启用，您可能希望数据被持久化。见下文。默认值：`false`
+* __`ENABLE_ID_OBFUSCATION`__: 当启用遥测时设置为true，测试ID将被混淆，以避免暴露数据库内部的顺序ID。默认值：`false`
+* __`REDACT_IP_ADDRESSES`__: 当启用遥测时设置为true，IP地址和主机名将从收集的遥测数据中删除，以提高隐私性。默认值：`false`
+* __`DB_TYPE`__: 当设置为支持的数据库后端之一时，将使用它而不是默认的sqlite数据库后端。必须将TELEMETRY设置为`true`。还必须按照[doc.md](doc.md#creating-the-database)中所述创建数据库。支持的后端类型有：
+  * sqlite - 无需额外设置
+  * mysql, postgresql - 设置额外的环境变量：
+    * DB_HOSTNAME - 数据库服务器的名称或IP
+    * DB_PORT (仅mysql) - 数据库运行的端口
+    * DB_NAME - 遥测数据库的名称
+    * DB_USERNAME, DB_PASSWORD - 具有数据库读写权限的用户凭据
+  * mssql - 尚未在docker镜像中支持（欢迎提交PR实现，需在`entrypoint.sh`中完成）
+* __`PASSWORD`__: 访问统计页面的密码。如果未设置，统计页面将不允许访问。
+* __`EMAIL`__: GDPR请求的电子邮件地址。启用遥测时必须指定。
+* __`DISABLE_IPINFO`__: 如果设置为`true`，将不会从[ipinfo.io](https://ipinfo.io)或离线数据库获取ISP信息和距离。默认值：`false`
+* __`IPINFO_APIKEY`__: [ipinfo.io](https://ipinfo.io)的API密钥。可选，但如果您想使用完整的[ipinfo.io](https://ipinfo.io) API（距离测量所需），则必需
+* __`DISTANCE`__: 当`DISABLE_IPINFO`设置为false时，指定如何测量与服务器的距离。可以是`km`（公里）、`mi`（英里）或空字符串（禁用距离测量）。需要[ipinfo.io](https://ipinfo.io) API密钥。默认值：`km`
+* __`WEBPORT`__: 允许为包含的Web服务器选择自定义端口。默认值：`8080`。请注意，您必须通过docker的-p参数暴露它。这不是服务在docker外部暴露的端口！
 
-If telemetry is enabled, a stats page will be available at `http://your.server/results/stats.php`, but a password must be specified.
+如果启用了遥测，统计页面将在`http://your.server/results/stats.php`可用，但必须指定密码。
 
-### Persist sqlite database
+### 持久化sqlite数据库
 
-Default DB driver is sqlite. The DB file is written to `/database/db.sql`.
+默认数据库驱动是sqlite。数据库文件写入`/database/db.sql`。
 
-So if you want your data to be persisted over image updates, you have to mount a volume with `-v $PWD/db-dir:/database`.
+因此，如果您希望数据在镜像更新后保持不变，必须使用`-v $PWD/db-dir:/database`挂载卷。
 
-#### Example Standalone Mode with telemetry
+#### 带遥测的独立模式示例
 
-This command starts LibreSpeed in standalone mode, with persisted telemetry, ID obfuscation and a stats password, on port 86:
+此命令以独立模式启动LibreSpeed，带有持久化遥测、ID混淆和统计密码，在86端口上：
 
 ```shell
 docker run -e MODE=standalone -e TELEMETRY=true -e ENABLE_ID_OBFUSCATION=true -e PASSWORD="yourPasswordHere" -e WEBPORT=86 -p 86:86 -v $PWD/db-dir/:/database -it ghcr.io/librespeed/speedtest
 ```
 
-## Multiple Points of Test
+## 多测试点
 
-For multiple servers, you need to set up 1+ LibreSpeed backends, and 1 LibreSpeed frontend.
+对于多个服务器，您需要设置1个或多个LibreSpeed后端和1个LibreSpeed前端。
 
-### Backend mode
+### 后端模式
 
-In backend mode, LibreSpeed provides only a test point with no UI. To do this, set the `MODE` environment variable to `backend`.
+在后端模式下，LibreSpeed仅提供测试点，没有UI。为此，将`MODE`环境变量设置为`backend`。
 
-The following backend files can be accessed on port 80: `garbage.php`, `empty.php`, `getIP.php`
+以下后端文件可在80端口访问：`garbage.php`、`empty.php`、`getIP.php`
 
-Here's a list of additional environment variables available in this mode:
+以下是此模式下可用的其他环境变量列表：
 
-* __`IPINFO_APIKEY`__: API key for [ipinfo.io](https://ipinfo.io). Optional, but required if you want to use the full [ipinfo.io](https://ipinfo.io) APIs (required for distance measurement). If no API key is provided, the offline database will be used instead.
+* __`IPINFO_APIKEY`__: [ipinfo.io](https://ipinfo.io)的API密钥。可选，但如果您想使用完整的[ipinfo.io](https://ipinfo.io) API（距离测量所需），则必需。如果未提供API密钥，将使用离线数据库。
 
-#### Example Backend mode
+#### 后端模式示例
 
-This command starts LibreSpeed in backend mode, with the default settings, on port 80:
+此命令以后端模式启动LibreSpeed，使用默认设置，在80端口上：
 
 ```shell
 docker run -e MODE=backend -p 80:8080 -it ghcr.io/librespeed/speedtest
 ```
 
-### Frontend mode
+### 前端模式
 
-In frontend mode, LibreSpeed serves clients the Web UI and a list of servers. To do this:
+在前端模式下，LibreSpeed为客户端提供Web UI和服务器列表。为此：
 
-* Set the `MODE` environment variable to `frontend`
-* Create a servers.json file with your test points. The syntax is the following:
+* 将`MODE`环境变量设置为`frontend`
+* 创建一个包含测试点的servers.json文件。语法如下：
 
     ```jsonc
     [
         {
-            "name": "Friendly name for Server 1",
+            "name": "服务器1的友好名称",
             "server" :"//server1.mydomain.com/",
             "dlURL" :"garbage.php",
             "ulURL" :"empty.php",
@@ -131,37 +130,37 @@ In frontend mode, LibreSpeed serves clients the Web UI and a list of servers. To
             "getIpURL" :"getIP.php"
         },
         {
-            "name": "Friendly name for Server 2",
+            "name": "服务器2的友好名称",
             "server" :"https://server2.mydomain.com/",
             "dlURL" :"garbage.php",
             "ulURL" :"empty.php",
             "pingURL" :"empty.php",
             "getIpURL" :"getIP.php"
         },
-        //...more servers...
+        //...更多服务器...
     ]
     ```
 
-    Note: if a server only supports HTTP or HTTPS, specify the protocol in the server field. If it supports both, just use `//`.
-* Mount this file to `/servers.json` in the container (example at the end of this file)
+    注意：如果服务器仅支持HTTP或HTTPS，请在server字段中指定协议。如果同时支持两者，只需使用`//`。
+* 将此文件挂载到容器中的`/servers.json`（示例见文件末尾）
 
-The test can be accessed on port 80.
+测试可在80端口访问。
 
-The list of environment variables available in this mode is the same as [above in standalone mode](#standalone-mode).
+此模式下可用的环境变量列表与[上面的独立模式](#standalone-mode)相同。
 
-#### Example Frontend mode
+#### 前端模式示例
 
-This command starts LibreSpeed in frontend mode, with a given `servers.json` file, and with telemetry, ID obfuscation, and a stats password and a persistant sqlite database for results:
+此命令以前端模式启动LibreSpeed，使用给定的`servers.json`文件，启用遥测、ID混淆、统计密码和持久化sqlite数据库存储结果：
 
 ```shell
 docker run -e MODE=frontend -e TELEMETRY=true -e ENABLE_ID_OBFUSCATION=true -e PASSWORD="yourPasswordHere" -v $PWD/servers.json:/servers.json -v $PWD/db-dir/:/database -p 80:80 -it ghcr.io/librespeed/speedtest
 ```
 
-### Dual mode
+### 双模式
 
-In dual mode, LibreSpeed operates as a standalone server that can also connect to other test points.
-To do this:
+在双模式下，LibreSpeed作为可连接到其他测试点的独立服务器运行。
+为此：
 
-* Set the `MODE` environment variable to `dual`
-* Follow the `servers.json` instructions for the frontend mode
-* The first server entry should be the local server, using the server endpoint address that a client can access.
+* 将`MODE`环境变量设置为`dual`
+* 按照前端模式的`servers.json`说明操作
+* 第一个服务器条目应该是本地服务器，使用客户端可以访问的服务器端点地址。
