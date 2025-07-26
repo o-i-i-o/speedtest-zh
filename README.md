@@ -78,7 +78,7 @@ Rust实现可在[`speedtest-rust`](https://github.com/librespeed/speedtest-rust)
 
 ## 捐赠
 
-[![使用Liberapay捐赠](https://github.com/librespeed/speedtest)
+[![使用Liberapay捐赠](https://liberapay.com/assets/widgets/donate.svg)(https://github.com/librespeed/speedtest)
 [使用PayPal捐赠](https://github.com/librespeed/speedtest)
 
 ## 许可证
