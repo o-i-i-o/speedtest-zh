@@ -1,480 +1,59 @@
-# LibreSpeed
-
-> by Federico Dossena
-> Version 5.4.1
-> [https://github.com/librespeed/speedtest/](https://github.com/librespeed/speedtest/)
-
-## Introduction
-
-LibreSpeed is a Free and Open Source speed test that you can host on your server(s), and users can run in their browser.
-
-__Features:__
-
-* Download test
-* Upload test
-* Ping and Jitter test
-* IP address, ISP and distance detection
-* Telemetry (optional)
-* Results sharing (optional)
-* Multiple Points of Test (optional)
-
-__Browser support:__
-The test supports any browser that supports XHR Level 2 and Web Workers. JavaScript must be enabled.
-
-The following browsers are officially supported:
-
-* Internet Explorer 11
-* Microsoft Edge (last 2 versions)
-* Mozilla Firefox (latest ESR and last 2 versions)
-* Google Chrome and other Chromium-based browsers (last 2 versions)
-* Apple Safari (last 2 versions)
-* Opera (last 2 versions)
-
-Client side, the test can use up to 500MB of RAM on very fast connections.
-
-## Quick start guides
-
-This video shows the installation process of a standalone LibreSpeed server: [Quick start installation guide for Debian 12](https://fdossena.com/?p=speedtest/quickstart_deb12.frag)
-
-More videos will be added later.
-
-## Installation
-
-### Single server, PHP
-
-Server side, you'll need:
-
-* Apache 2 (nginx and IIS also supported). A fast internet connection is required (possibly gigabit), and the web server must accept large POST requests (up to 20MB)
-* PHP 5.4 or newer (8.0 required for ISP and distance detection), a 64-bit version is strongly recommended
-* OpenSSL and its PHP module (this is usually installed automatically by most distros)
-* If you want to store test results (telemetry), one of the following:
-  * MySQL/MariaDB and its PHP PDO module
-  * PostgreSQL and its PHP PDO module
-  * SQLite 3 and its PHP PDO module
-  * MSSQL and its PHP PDO module (Windows only)
-* If you want to enable results sharing (these are usually installed automatically by most distros when you install PHP):
-  * FreeType 2 and its PHP module
-  * The PHP gd library
-
-Let's install the speed test.
-
-Put all files on your web server via FTP or by copying them directly. You can install it in the root, or in a subdirectory.
-
-__Important:__ The speed test needs write permissions in the installation folder!
-
-#### ipinfo.io
-
-The speed test uses the [ipinfo.io](https://ipinfo.io) offline database to detect ISP and country (CC-BY-SA 4.0 license), enabled by default.
-It's possible to use the full [ipinfo.io](https://ipinfo.io) API to detect distance from server as well. This is completely optional and can be enabled by obtaining an [access token](https://ipinfo.io) and putting it in `backend/getIP_ipInfo_apikey.php`. When this feature is enabled, the offline database will only be used as fallback.
-
-#### Telemetry and results sharing
-
-The test supports storing test results and can generate shareable images that users can embed in forum signatures and such.
-
-To use this function, you will need a database. The test supports MySQL, PostgreSQL and SQLite as backends.
-
-##### Creating the database
-
-This step is only required for MySQL, PostgreSQL and MSSQL. If you want to use SQLite, skip to the next step.
-
-Log into your database using phpMyAdmin or a similar software and create a new database. Inside the `results` folder you will find `telemetry_mysql.sql`, `telemetry_postgresql.sql` and `telemetry_mssql.sql`, which are templates for MySQL, PostgreSQL and MSSQL respectively. Import the one you need, and you will see a `speedtest_users` table in the database. You can delete the templates afterwards.
-
-##### Configuring telemetry
-
-Open `results/telemetry_settings.php` in a text editor. Set `$db_type` to either `mysql`,`postgresql`, `mssql` or `sqlite`.
-
-If you chose to use SQLite, you might want to change `$Sqlite_db_file` to another path where you want the database to be stored. Just make sure that the file cannot be downloaded by users. Sqlite doesn't require any additional configuration, you can skip the rest of this section.
-
-If you chose to use MySQL, you must set your database credentials:
-
-```php
-$MySql_username="USERNAME"; //your database username
-$MySql_password="PASSWORD"; //your database password
-$MySql_hostname="DB_HOSTNAME"; //database address, usually localhost
-$MySql_databasename="DB_NAME"; //the name of the database where you loaded telemetry_mysql.sql
-```
-
-If you chose to use PostgreSQL, you must set your database credentials:
-
-```php
-$PostgreSql_username="USERNAME"; //your database username
-$PostgreSql_password="PASSWORD"; //your database password
-$PostgreSql_hostname="DB_HOSTNAME"; //database address, usually localhost
-$PostgreSql_databasename="DB_NAME"; //the name of the database where you loaded telemetry_postgresql.sql
-```
-
-Ifyou chose to use MSSQL, you must set your database credentials:
-
-```php
-$MsSql_server = 'DB_HOSTNAME';
-$MsSql_databasename = 'DB_NAME';
-$MsSql_WindowsAuthentication = true;   //true or false
-$MsSql_username = 'USERNAME';          //not used if MsSql_WindowsAuthentication is true
-$MsSql_password = 'PASSWORD';          //not used if MsSql_WindowsAuthentication is true
-$MsSql_TrustServerCertificate = true;  //true, false or comment out for driver default
-```
-
-##### Results sharing
-
-This feature generates an image that can be share by the user containing the download, upload, ping, jitter and ISP (if enabled).
-
-By default, the telemetry generates a progressive ID for each test. Even if no sensitive information is leaked, you might not want users to be able to guess other test IDs. To avoid this, you can turn on ID obfuscation, which turns IDs into a reversible hash, much like YouTube video IDs.
-
-To enable ID obfuscation, edit `results/telemetry_settings.php` and set `$enable_id_obfuscation` to `true`. From now on, all test IDs will be obfuscated using a unique salt. The IDs in the database are still progressive, but users will only know their obfuscated versions and won't be able to easily guess other IDs.
-
-__Important:__ ID obfuscation currently only works on 64-bit PHP!
-
-While you're editing `results/telemetry_settings.php`, you might want to set `$redact_ip_addresses` to `true`, this way, all IP addresses will be removed from the telemetry for better privacy. This is disabled by default.
-
-##### Seeing the results
-
-A basic front-end for visualizing and searching tests by ID is available in `results/stats.php`.
-
-A login is required to access the interface. __Important__: change the default password in `results/telemetry_settings.php`.
-
-#### The end
-
-Now that the test is installed, the default page uses telemetry and results sharing. If you want another UI, you can easily customize `index.html` or one of the examples in the `examples` folder (the best starting point for most people is `example-singleServer-gauges.html`).
-
-If you're not using telemetry and results sharing, you can delete the `results` folder too.
-
-Details about the examples and how to make custom UIs will be discussed later.
-
-#### Privacy
-
-Telemetry contains personal information (according to GDPR definition), therefore it is important to treat this data respectfully of national and international laws, especially if you plan to offer the service in the European Union.
-
-Default `index.html` and `example-multipleServers-full.html` both contain a privacy policy for the service: you MUST read it, change it if necessary, and add your email address for data deletion requests. __Failure to comply with GDPR regulations can get you in serious trouble.__
-
-### Multiple servers, PHP
-
-The speed test can automatically choose between multiple test points and use the one with the lowest ping in a list.
-
-Note that this is an advanced use case and it is recommended that you already know how to use the speed test with a single server.
-
-We must distinguish 2 types of servers:
-
-* __Frontend server__: hosts the UI, the JS files, and optionally telemetry and results sharing stuff. You only need 1 of these, and this is the server that your clients will first connect to.
-* __Test backends__: the servers used to actually perform the test. There can be 1+ of these, and they only host the backend files.
-
-#### Frontend server
-
-This is the server that your users will first connect to. It hosts the UI, the JS files, and optionally telemetry and results sharing stuff.
-
-Requirements:
-
-* Apache 2 (nginx and IIS also supported). A fast connection is not mandatory, but is still recommended
-* PHP 5.4 or newer, a 64-bit version is strongly recommended
-* If you want to store test results (telemetry), one of the following:
-  * MySQL/MariaDB and its PHP PDO module
-  * PostgreSQL and its PHP PDO module
-  * SQLite 3 and its PHP PDO module
-  * MSSQL and its PHP PDO module (Windows only)
-* If you want to enable results sharing (these are usually installed automatically by most distros when you install PHP):
-  * FreeType 2 and its PHP module
-  * The PHP gd library
-
-To install the speed test frontend, copy the following files to your web server:
-
-* `speedtest.js`
-* `speedtest_worker.js`
-* Optionally, the `results` folder
-* `index.html` (or one of the example UIs in the `examples` folder)
-
-__Important:__ The speed test needs write permissions in the installation folder!
-
-##### Server list
-
-Edit `index.html` and uncomment the list of servers:
-
-```js
-var SPEEDTEST_SERVERS=[
- /*{
-  name:"Example Server 1", //user friendly name for the server
-  server:"//test1.mydomain.com/", //URL to the server. // at the beginning will be replaced with http:// or https:// automatically
-  dlURL:"backend/garbage.php",  //path to download test on this server (garbage.php or replacement)
-  ulURL:"backend/empty.php",  //path to upload test on this server (empty.php or replacement)
-  pingURL:"backend/empty.php",  //path to ping/jitter test on this server (empty.php or replacement)
-  getIpURL:"backend/getIP.php"  //path to getIP on this server (getIP.php or replacement)
- },
- {
-  name:"Example Server 2", //user friendly name for the server
-  server:"//test2.example.com/", //URL to the server. // at the beginning will be replaced with http:// or https:// automatically
-  dlURL:"garbage.php",  //path to download test on this server (garbage.php or replacement)
-  ulURL:"empty.php",  //path to upload test on this server (empty.php or replacement)
-  pingURL:"empty.php",  //path to ping/jitter test on this server (empty.php or replacement)
-  getIpURL:"getIP.php"  //path to getIP on this server (getIP.php or replacement)
- }*/
- //add other servers here, comma separated
-];
-```
-
-Replace the demo servers with your test points. Each server in the list is an object containing:
-
-* `"name"`: user friendly name for this test point
-* `"server"`: URL to the server. If your server only supports HTTP or HTTPS, put http:// or https:// at the beginning, respectively; if it supports both, put // at the beginning and it will be replaced automatically
-* `"dlURL"`: path to the download test on this server (garbage.php or replacement)
-* `"ulURL"`: path to the upload test on this server (empty.php or replacement)
-* `"pingURL"`: path to the ping test on this server (empty.php or replacement)
-* `"getIpURL"`: path to getIP on this server (getIP.php or replacement)
-
-None of these parameters can be omitted.
-
-__Important__: You can't mix HTTP with HTTPS; if the frontend uses HTTP, you won't be able to connect to HTTPS backends, and viceversa.
-
-__Important__: For HTTPS, all your servers must have valid certificates or the browser will refuse to connect.
-
-If your list of servers changes often, you might not want to have it hardcoded in the HTML file. LibreSpeed can load the server list from a JSON file. To do this, remove the server list and replace it with the URL to your server list, like this:
-
-```js
-var SPEEDTEST_SERVERS="your URL here";
-```
-
-The URL doesn't need to be complete, it can just point to a file in the current directory. The URL should point to a JSON file with the same format used above:
-
-```js
-[
-    {
-        "name":...
-    },
-    ...
-]
-```
-
-__Important:__ The same origin policy applies to which URLs you can and cannot load with this method. If possible, it's best to just point it to a file on the current server.
-
-##### Telemetry and results sharing in multiple server scenarios
-
-Telemetry is stored on the frontend server. The setup procedure is the same as the single server version.
-
-#### Test backends
-
-These are the servers that will actually be used to perform the test.
-
-Requirements:
-
-* Apache 2 (nginx and IIS also supported). A fast internet connection is required (possibly gigabit), and the web server must accept large POST requests (up to 20MB)
-* PHP 5.4 or newer (8.0 required for ISP and distance detection)
-* OpenSSL and its PHP module (this is usually installed automatically by most distros)
-
-To install a backend, simply copy all the files in the `backend` folder to your backend server.
-
-__Important:__ The speed test needs write permissions in the installation folder!
-
-#### ipinfo.io, see single server
-
-see [above](#ipinfoio)
-
-## Making a custom front-end
-
-This section explains how to use speedtest.js in your webpages.
-
-The best way to learn is by looking at the provided examples.
-
-__Single server:__
-
-* `example-singleServer-basic.html`: The most basic configuration possible. Runs the test with the default settings when the page is loaded and displays the results with no fancy graphics.
-* `example-singleServer-pretty.html`: A more sophisticated example with a nicer layout and a start/stop button. __This is the best starting point for most users__
-* `example-singleServer-progressBar.html`: Same as `example-singleServer-pretty.html` but adds a progress indicator
-* `example-singleServer-customSettings.html`: Same as `example-singleServer-pretty.html` but configures the test so that it only performs download and upload tests, and with a fixed length instead of automatic
-* `example-singleServer-gauges.html`: The most sophisticated example, with the same functionality as `example-singleServer-pretty.html` but adds gauges. This is also a good starting point, but the gauges may slow down underpowered devices
-* `example-singleServer-chart.html`: Shows how to use the test with the Chart.js library
-* default `index.html`: A full UI that supports both single server and multiple servers installations and even has a dark theme
-
-__Multiple servers:__
-
-* `example-multipleServers-pretty.html`: Same as `example-singleServer-pretty.html` but with multiple test points. Server selection is fully automatic
-* `example-multipleServers-full.html`: Same as default `index.html` but with multiple test points. Server selection is automatic but the server can be changed afterwards by the user
-
-### Initialization
-
-To use the speed test in your page, first you need to load it:
-
-```xml
-<script type="text/javascript" src="speedtest.js"></script>
-```
-
-After loading, you can initialize the test:
-
-```js
-var s=new Speedtest();
-```
-
-### Event handlers
-
-Now, you can set up event handlers to update your UI:
-
-```js
-s.onupdate=function(data){
-    //update your UI here
-}
-s.onend=function(aborted){
-    //end of the test
-    if(aborted){
-        //something to do if the test was aborted instead of ending normally
-    }
-}
-```
-
-The `onupdate` event handler will be called periodically by the test with data coming from the speed test worker thread. The `data` argument is an object containing the following:
-
-* __testState__: an integer between -1 and 5
-  * `-1` = Test not started yet
-  * `0` = Test starting
-  * `1` = Download test in progress
-  * `2` = Ping + Jitter test in progress
-  * `3` = Upload test in progress
-  * `4` = Test finished
-  * `5` = Test aborted
-* __dlStatus__: either
-  * Empty string (not started or aborted)
-  * Download speed in Megabit/s as a number with 2 decimals
-  * The string "Fail" (test failed)
-* __ulStatus__: either
-  * Empty string (not started or aborted)
-  * Upload speed in Megabit/s as a number with 2 decimals
-  * The string "Fail" (test failed)
-* __pingStatus__: either
-  * Empty string (not started or aborted)
-  * Estimated ping in milliseconds as a number with 2 decimals
-  * The string "Fail" (test failed)
-* __clientIp__: either
-  * Empty string (not fetched yet or failed)
-  * The client's IP address as a string (with ISP info if enabled)
-* __jitterStatus__: either
-  * Empty string (not started or aborted)
-  * Estimated jitter in milliseconds as a number with 2 decimals (lower = stable connection)
-  * The string "Fail" (test failed)
-* __dlProgress__: the progress of the download test as a number between 0 and 1
-* __ulProgress__: the progress of the upload test as a number between 0 and 1
-* __pingProgress__: the progress of the ping+jitter test as a number between 0 and 1
-* __testId__: when telemetry is active, this is the ID of the test in the database. This is null until the test is finished, or if telemetry encounters an error. This ID is used for results sharing
-
-The `onend` event handler will be called at the end of the test (`onupdate` will be called first), with a boolean telling you if the test was aborted (either manually or because of an error) or if it ended normally.
-
-### Test parameters
-
-Before starting the test, you can change some of the settings from their default values. You might want to do this to better adapt the speed test to a specific scenario, such as a satellite connection. To change a setting, use
-
-```js
-s.setParameter("parameter_name",value);
-```
-
-For instance, to enable telemetry we can use:
-
-```js
-s.setParameter("telemetry_level","basic");
-```
-
-And now the test results will be stored and we will get our test ID at the end of the test (along with the other data)
-
-__Main parameters:__
-
-* __time_dl_max__: Maximum duration of the download test in seconds. If auto duration is disabled, this is used as the duration of the test.
-  * Default: `15`
-  * Recommended: `>=5`
-* __time_ul_max__: Maximum duration of the upload test in seconds. If auto duration is disabled, this is used as the duration of the test.
-  * Default: `15`
-  * Recommended: `>=10`
-* __time_auto__: Automatically determine the duration of the download and upload tests, making them faster on faster connections, to avoid wasting data.
-  * Default: `true`
-* __count_ping__: How many pings to perform in the ping test
-  * Default: `10`
-  * Recommended: `>=3, <30`
-* __url_dl__: path to garbage.php or a large file to use for the download test.
-  * Default: `garbage.php`
-  * __Important:__ path is relative to js file
-* __url_ul__: path to an empty file or empty.php to use for the upload test
-  * Default: `empty.php`
-  * __Important:__ path is relative to js file
-* __url_ping__: path to an empty file or empty.php to use for the ping test
-  * Default: `empty.php`
-  * __Important:__ path is relative to js file
-* __url_getIp__: path to getIP.php or replacement
-  * Default: `getIP.php`
-  * __Important:__ path is relative to js file
-* __url_telemetry__: path to telemetry.php or replacement
-  * Default: `results/telemetry.php`
-  * __Important:__ path is relative to js file
-  * __Note:__ you can ignore this parameter if you're not using the telemetry
-* __telemetry_level__: The type of telemetry to use. See the telemetry section for more info about this
-  * Default: `none`
-  * `basic`: send results only
-  * `full`: send results and timing information, even for aborted tests
-  * `debug`: same as full but also sends debug information. Not recommended.
-* __test_order__: the order in which tests will be performed. You can use this to change the order of the test, or to only enable specific tests. Each character represents an operation:
-  * `I`: get IP
-  * `D`: download test
-  * `U`: upload test
-  * `P`: ping + jitter test
-  * `_`: delay 1 second
-  * Default test order: `IP_D_U`
-  * __Important:__ Tests can only be run once
-  * __Important:__ On Firefox, it is better to run the upload test last
-* __getIp_ispInfo__: if true, the server will try to get ISP info and pass it along with the IP address. This will add `isp=true` to the request to `url_getIp`. getIP.php accomplishes this using ipinfo.io
-  * Default: `true`
-* __getIp_ispInfo_distance__: if true, the server will try to get an estimate of the distance from the client to the speed test server. This will add a `distance` argument to the request to `url_getIp`. `__getIp_ispInfo__` must be enabled in order for this to work. getIP.php accomplishes this using ipinfo.io (API key required)
-  * `km`: estimate distance in kilometers
-  * `mi`: estimate distance in miles
-  * not set: do not measure distance
-  * Default: `km`
-
-__Advanced parameters:__ (Seriously, don't change these unless you know what you're doing)
-
-* __telemetry_extra__: Extra data that you want to be passed to the telemetry. This is a string field, if you want to pass an object, make sure you use ``JSON.stringify``. This string will be added to the database entry for this test.
-* __enable_quirks__: enables browser-specific optimizations. These optimizations override some of the default settings. They do not override settings that are explicitly set.
-  * Default: `true`
-* __garbagePhp_chunkSize__: size of chunks sent by garbage.php in megabytes
-  * Default: `100`
-  * Recommended: `>=10`
-  * Maximum: `1024`
-* __xhr_dlMultistream__: how many streams should be opened for the download test
-  * Default: `6`
-  * Recommended: `>=3`
-  * Default override: 3 on Edge if enable_quirks is true
-  * Default override: 5 on Chromium-based if enable_quirks is true
-* __xhr_ulMultistream__: how many streams should be opened for the upload test
-  * Default: `3`
-  * Recommended: `>=1`
-* __xhr_ul_blob_megabytes__: size in megabytes of the blobs sent during the upload test
-  * Default: `20`
-  * Default override: 4 on Chromium-based mobile browsers (limitation introduced around version 65). This will be forced
-  * Default override: IE11 and Edge currently use a different method for the upload test. This parameter is ignored
-* __xhr_multistreamDelay__: how long should the multiple streams be delayed (in ms)
-  * Default: `300`
-  * Recommended: `>=100`, `<=700`
-* __xhr_ignoreErrors__: how to react to errors in download/upload streams and the ping test
-  * `0`: Fail test on error (behaviour of previous versions of this test)
-  * `1`: Restart a stream/ping when it fails
-  * `2`: Ignore all errors
-  * Default: `1`
-  * Recommended: `1`
-* __time_dlGraceTime__: How long to wait (in seconds) before actually measuring the download speed. This is a good idea because we want to wait for the TCP window to be at its maximum (or close to it)
-  * Default: `1.5`
-  * Recommended: `>=0`
-* __time_ulGraceTime__: How long to wait (in seconds) before actually measuring the upload speed. This is a good idea because we want to wait for the buffers to be full (avoids the peak at the beginning of the test)
-  * Default: `3`
-  * Recommended: `>=1`
-* __ping_allowPerformanceApi__: toggles use of Performance API to improve accuracy of Ping/Jitter test on browsers that support it.
-  * Default: `true`
-  * Default override: `false` on Firefox because its performance API implementation is inaccurate
-* __useMebibits__: use mebibits/s instead of megabits/s for the speeds
-  * Default: `false`
-* __overheadCompensationFactor__: compensation for HTTP and network overhead. Default value assumes typical MTUs used over the Internet. You might want to change this if you're using this in your internal network with different MTUs, or if you're using IPv6 instead of IPv4.
-  * Default: `1.06` probably a decent estimate for all overhead. This was measured empirically by comparing the measured speed and the speed reported by my the network adapter.
-  * `1048576/925000`: old default value. This is probably too high.
-  * `1.0513`: HTTP+TCP+IPv6+ETH, over the Internet (empirically tested, not calculated)
-  * `1.0369`: Alternative value for HTTP+TCP+IPv4+ETH, over the Internet (empirically tested, not calculated)
-  * `1.081`: Yet another alternative value for over the Internet (empirically tested, not calculated)
-  * `1514 / 1460`: TCP+IPv4+ETH, ignoring HTTP overhead
-  * `1514 / 1440`: TCP+IPv6+ETH, ignoring HTTP overhead
-  * `1`: ignore overheads. This measures the speed at which you actually download and upload files rather than the raw connection speed
-
-### Multiple Points of Test
-
-If you want to use more than one test server, this is the time to add all your test points and select the best one. Skip this part if you don't want to use this feature.
-
-The best way to do this is to declare an array with all your servers, and give it to the speed test:
+### 高级参数设置（谨慎修改，除非您知道自己在做什么）
+
+* __telemetry_extra__: 您希望传递给遥测系统的额外数据。这是一个字符串字段，如果您想传递对象，请确保使用 `JSON.stringify`。此字符串将添加到该测试的数据库条目中。
+* __enable_quirks__: 启用浏览器特定的优化。这些优化会覆盖一些默认设置，但不会覆盖明确设置的参数。
+  * 默认值: `true`
+* __garbagePhp_chunkSize__: garbage.php发送的块大小（以MB为单位）
+  * 默认值: `100`
+  * 推荐值: `>=10`
+  * 最大值: `1024`
+* __xhr_dlMultistream__: 下载测试应打开的流数量
+  * 默认值: `6`
+  * 推荐值: `>=3`
+  * 默认覆盖: 如果enable_quirks为true，Edge上为3
+  * 默认覆盖: 如果enable_quirks为true，基于Chromium的浏览器上为5
+* __xhr_ulMultistream__: 上传测试应打开的流数量
+  * 默认值: `3`
+  * 推荐值: `>=1`
+* __xhr_ul_blob_megabytes__: 上传测试期间发送的Blob大小（以MB为单位）
+  * 默认值: `20`
+  * 默认覆盖: 基于Chromium的移动浏览器上为4（约版本65引入的限制），这将被强制执行
+  * 默认覆盖: IE11和Edge当前使用不同的上传测试方法，此参数将被忽略
+* __xhr_multistreamDelay__: 多个流应延迟多长时间（以毫秒为单位）
+  * 默认值: `300`
+  * 推荐值: `>=100`，`<=700`
+* __xhr_ignoreErrors__: 如何应对下载/上传流和ping测试中的错误
+  * `0`: 出错时测试失败（此测试以前版本的行为）
+  * `1`: 流/ping失败时重新启动
+  * `2`: 忽略所有错误
+  * 默认值: `1`
+  * 推荐值: `1`
+* __time_dlGraceTime__: 实际测量下载速度前等待的时间（以秒为单位）。这是个好主意，因为我们希望等待TCP窗口达到最大值（或接近最大值）
+  * 默认值: `1.5`
+  * 推荐值: `>=0`
+* __time_ulGraceTime__: 实际测量上传速度前等待的时间（以秒为单位）。这是个好主意，因为我们希望等待缓冲区填满（避免测试开始时的峰值）
+  * 默认值: `3`
+  * 推荐值: `>=1`
+* __ping_allowPerformanceApi__: 切换是否使用Performance API来提高支持它的浏览器上Ping/Jitter测试的准确性。
+  * 默认值: `true`
+  * 默认覆盖: Firefox上为`false`，因为其Performance API实现不准确
+* __useMebibits__: 使用mebibits/s而不是megabits/s表示速度
+  * 默认值: `false`
+* __overheadCompensationFactor__: HTTP和网络开销的补偿。默认值假设互联网上使用的典型MTU。如果您在具有不同MTU的内部网络中使用，或者如果您使用IPv6而不是IPv4，您可能需要更改此值。
+  * 默认值: `1.06` 可能是所有开销的合理估计。这是通过比较测量速度和网络适配器报告的速度凭经验测量的。
+  * `1048576/925000`: 旧默认值，可能过高
+  * `1.0513`: 互联网上的HTTP+TCP+IPv6+ETH（经验测试，非计算）
+  * `1.0369`: 互联网上的HTTP+TCP+IPv4+ETH的替代值（经验测试，非计算）
+  * `1.081`: 互联网上的另一个替代值（经验测试，非计算）
+  * `1514 / 1460`: TCP+IPv4+ETH，忽略HTTP开销
+  * `1514 / 1440`: TCP+IPv6+ETH，忽略HTTP开销
+  * `1`: 忽略开销。这测量的是您实际下载和上传文件的速度，而不是原始连接速度
+
+### 多测试点
+
+如果您想使用多个测试服务器，现在是添加所有测试点并选择最佳测试点的时候了。如果您不想使用此功能，请跳过此部分。
+
+最好的方法是声明一个包含所有服务器的数组，并将其提供给速度测试：
 
 ```js
 var SPEEDTEST_SERVERS=[
@@ -485,22 +64,22 @@ var SPEEDTEST_SERVERS=[
 s.addTestPoints(SPEEDTEST_SERVERS);
 ```
 
-Each server in the list is an object containing:
+列表中的每个服务器都是一个包含以下内容的对象：
 
-* `name`: user friendly name for this test point
-* `server`: URL to the server. If your server only supports HTTP or HTTPS, put `http://` or `https://` at the beginning, respectively; if it supports both, put `//` at the beginning and it will be replaced automatically
-* `dlURL`: path to the download test on this server (garbage.php or replacement)
-* `ulURL`: path to the upload test on this server (empty.php or replacement)
-* `pingURL`: path to the ping test on this server (empty.php or replacement)
-* `getIpURL`: path to getIP on this server (getIP.php or replacement)
+* `name`: 此测试点的用户友好名称
+* `server`: 服务器的URL。如果您的服务器仅支持HTTP或HTTPS，请分别在开头放置`http://`或`https://`；如果同时支持两者，请在开头放置`//`，它将被自动替换
+* `dlURL`: 此服务器上下载测试的路径（garbage.php或替代品）
+* `ulURL`: 此服务器上上传测试的路径（empty.php或替代品）
+* `pingURL`: 此服务器上ping测试的路径（empty.php或替代品）
+* `getIpURL`: 此服务器上getIP的路径（getIP.php或替代品）
 
-None of these parameters can be omitted.
+这些参数都不能省略。
 
-Example:
+示例：
 
 ```js
 {
- name:"Milano, IT",
+ name:"米兰, IT",
  server:"http://backend1.myspeedtest.net/",
  dlURL:"garbage.php",
  ulURL:"empty.php",
@@ -509,247 +88,244 @@ Example:
 }
 ```
 
-Now, we can run the server selector:
+现在，我们可以运行服务器选择器：
 
 ```js
 s.selectServer(function(server){
-    //do something
+    //做些什么
 })
 ```
 
-The `selectServer` function is asynchronous in order to avoid freeing the UI, and it will run a callback function when it is done choosing the server with the lowest ping.
-The `server` argument is the selected server, and you can display it in the UI if you want. __You cannot start the test until the selection is done!__
+`selectServer`函数是异步的，以避免冻结UI，当它完成选择ping最低的服务器时，将运行回调函数。`server`参数是选定的服务器，您可以在UI中显示它（如果需要）。__在选择完成之前，您不能开始测试！__
 
-You can also set the test point manually (for instance, from a combobox in the UI):
+您也可以手动设置测试点（例如，从UI中的组合框）：
 
 ```js
 s.setSelectedServer(server)
 ```
 
-where `server` is the server that you want to use.
+其中`server`是您要使用的服务器。
 
-### Running the test
+### 运行测试
 
-Finally, we can run the test:
+最后，我们可以运行测试：
 
 ```js
 s.start();
 ```
 
-During the test, your `onupdate` event handler will be called periodically with data that you can use to update your UI. Your `onend` handler will be called at the end of the test.
+在测试过程中，您的`onupdate`事件处理程序将定期被调用，提供可用于更新UI的数据。测试结束时，将调用您的`onend`处理程序。
 
-You can abort the test at any time:
+您可以随时中止测试：
 
 ```js
 s.abort();
 ```
 
-When the test is finished, you can run it again if you want, or you can just destroy `s`.
+测试完成后，您可以再次运行它，或者只是销毁`s`。
 
-## Implementation details
+## 实现细节
 
-The purpose of this section is to help developers who want to make changes to the inner workings of the speed test.
-It will be divided into 4 sections: `speedtest.js`, `speedtest_worker.js`, the `backend` files and the `results` files.
+本节的目的是帮助想要更改速度测试内部工作方式的开发人员。它将分为4个部分：`speedtest.js`、`speedtest_worker.js`、`backend`文件和`results`文件。
 
 ### `speedtest.js`
 
-This is the main interface between your webpage and the speed test.
-It hides the speed test web worker to the page, and provides many convenient functions to control the test.
+这是您的网页与速度测试之间的主要接口。它向页面隐藏了速度测试Web Worker，并提供了许多方便的函数来控制测试。
 
-You can think of this as a finite state machine. These are the states (use getState() to see them):
+您可以将其视为有限状态机。以下是状态（使用getState()查看它们）：
 
-* __0__: here you can change the speed test settings (such as test duration) with the `setParameter("parameter",value)` function. From here you can either start the test using `start()` (goes to state 3) or you can add multiple test points using `addTestPoint(server)` or `addTestPoints(serverList)` (goes to state 1). Additionally, this is the perfect moment to set up callbacks for the `onupdate(data)` and `onend(aborted)` events.
-* __1__: here you can add test points. You only need to do this if you want to use multiple test points.
-    A server is defined as an object like this:
+* __0__: 在这里，您可以使用`setParameter("parameter",value)`函数更改速度测试设置（如测试持续时间）。从这里，您可以使用`start()`开始测试（进入状态3），或者使用`addTestPoint(server)`或`addTestPoints(serverList)`添加多个测试点（进入状态1）。此外，这是设置`onupdate(data)`和`onend(aborted)`事件回调的最佳时机。
+* __1__: 在这里，您可以添加测试点。只有当您想使用多个测试点时才需要这样做。
+    服务器定义为如下对象：
 
     ```jsonc
     {
-        name: "User friendly name",
-        server:"http://yourBackend.com/",   //  <---- URL to your server. You can specify http:// or https://. If your server supports both, just write // without the protocol
-        dlURL:"garbage.php" //   <----- path to garbage.php or its replacement on the server
-        ulURL:"empty.php"  //  <----- path to empty.php or its replacement on the server
-        pingURL:"empty.php"  //  <----- path to empty.php or its replacement on the server. This is used to ping the server by this selector
-        getIpURL:"getIP.php"  //  <----- path to getIP.php or its replacement on the server
+        name: "用户友好名称",
+        server:"http://yourBackend.com/",   //  <---- 服务器URL。您可以指定http://或https://。如果您的服务器同时支持两者，只需写//而不写协议
+        dlURL:"garbage.php" //   <----- 服务器上garbage.php或其替代品的路径
+        ulURL:"empty.php"  //  <----- 服务器上empty.php或其替代品的路径
+        pingURL:"empty.php"  //  <----- 服务器上empty.php或其替代品的路径。选择器用此ping服务器
+        getIpURL:"getIP.php"  //  <----- 服务器上getIP.php或其替代品的路径
     }
     ```
 
-    While in state 1, you can only add test points, you cannot change the test settings. When you're done, use selectServer(callback) to select the test point with the lowest ping. This is asynchronous, when it's done, it will call your callback function and move to state 2. Calling setSelectedServer(server) will manually select a server and move to state 2.
-* __2__: test point selected, ready to start the test. Use `start()` to begin, this will move to state 3
-* __3__: test running. Here, your `onupdate` event callback will be called periodically, with data coming from the worker about speed and progress. A data object will be passed to your `onupdate` function, with the following items:
-        - `dlStatus`: download speed in Mbit/s
-        - `ulStatus`: upload speed in Mbit/s
-        - `pingStatus`: ping in ms
-        - `jitterStatus`: jitter in ms
-        - `dlProgress`: progress of the download test as a float 0-1
-        - `ulProgress`: progress of the upload test as a float 0-1
-        - `pingProgress`: progress of the ping/jitter test as a float 0-1
-        - `testState`: state of the test (-1=not started, 0=starting, 1=download test, 2=ping+jitter test, 3=upload test, 4=finished, 5=aborted)
-        - `clientIp`: IP address of the client performing the test (and optionally ISP and distance)
-    At the end of the test, the `onend` function will be called, with a boolean specifying whether the test was aborted or if it ended normally.
-    The test can be aborted at any time with `abort()`.
-    At the end of the test, it will move to state 4
-* __4__: test finished. You can run it again by calling `start()` if you want.
+    在状态1中，您只能添加测试点，不能更改测试设置。完成后，使用selectServer(callback)选择ping最低的测试点。这是异步的，完成后，它将调用您的回调函数并移动到状态2。调用setSelectedServer(server)将手动选择服务器并移动到状态2。
+* __2__: 测试点已选择，准备开始测试。使用`start()`开始，这将移动到状态3
+* __3__: 测试运行中。在这里，您的`onupdate`事件回调将定期被调用，接收来自工作线程的速度和进度数据。数据对象将传递给您的`onupdate`函数，包含以下项目：
+        - `dlStatus`: 下载速度（Mbit/s）
+        - `ulStatus`: 上传速度（Mbit/s）
+        - `pingStatus`: ping值（ms）
+        - `jitterStatus`: jitter值（ms）
+        - `dlProgress`: 下载测试进度（浮点数0-1）
+        - `ulProgress`: 上传测试进度（浮点数0-1）
+        - `pingProgress`: ping/jitter测试进度（浮点数0-1）
+        - `testState`: 测试状态（-1=未开始，0=开始中，1=下载测试，2=ping+jitter测试，3=上传测试，4=完成，5=中止）
+        - `clientIp`: 执行测试的客户端IP地址（可选包含ISP和距离）
+    测试结束时，将调用`onend`函数，并传入一个布尔值，指定测试是被中止还是正常结束。
+    测试可以随时用`abort()`中止。
+    测试结束后，它将移动到状态4
+* __4__: 测试完成。如果需要，您可以通过调用`start()`再次运行它。
 
-#### List of functions in the Speedtest class
+#### Speedtest类中的函数列表
 
 ##### getState()
 
-Returns the state of the test: 0=adding settings, 1=adding servers, 2=server selection done, 3=test running, 4=done
+返回测试状态：0=添加设置，1=添加服务器，2=服务器选择完成，3=测试运行中，4=完成
 
 ##### setParameter(parameter,value)
 
-Change one of the test settings from their defaults.
+设置测试参数
 
-* parameter: string with the name of the parameter that you want to set
-* value: new value for the parameter
+* parameter: 要设置的参数名称的字符串
+* value: 参数的新值
 
-Invalid values or nonexistant parameters will be ignored by the speed test worker.
+无效值或不存在的参数将被速度测试工作线程忽略。
 
 ##### addTestPoint(server)
 
-Add a test point (multiple points of test)
+添加测试点（多测试点）
 
-* server: the server to be added as an object. Must contain the following elements:
+* server: 要添加的服务器对象。必须包含以下元素：
 
     ```jsonc
     {
-        name: "User friendly name",
-        server:"http://yourBackend.com/",   // URL to your server. You can specify http:// or https://. If your server supports both, just write // without the protocol
-        dlURL:"garbage.php", //  path to garbage.php or its replacement on the server
-        ulURL:"empty.php", //   path to empty.php or its replacement on the server
-        pingURL:"empty.php", //   path to empty.php or its replacement on the server. This is used to ping the server by this selector
-        getIpURL:"getIP.php", //   path to getIP.php or its replacement on the server
+        name: "用户友好名称",
+        server:"http://yourBackend.com/",   // 服务器URL。您可以指定http://或https://。如果您的服务器同时支持两者，只需写//而不写协议
+        dlURL:"garbage.php", // 服务器上garbage.php或其替代品的路径
+        ulURL:"empty.php", // 服务器上empty.php或其替代品的路径
+        pingURL:"empty.php", // 服务器上empty.php或其替代品的路径。选择器用此ping服务器
+        getIpURL:"getIP.php", // 服务器上getIP.php或其替代品的路径
     }
     ```
 
-Note that this will add `mpot`:`true` to the parameters sent to the speed test worker.
+请注意，这将向发送给速度测试工作线程的参数添加`mpot`:`true`。
 
 ##### addTestPoints(list)
 
-Same as addTestPoint, but you can pass an array of servers
+与addTestPoint相同，但您可以传递服务器数组
 
 ##### loadServerList(url,result)
 
-Loads a list of servers from a JSON file pointed by the `url`.
+从`url`指向的JSON文件加载服务器列表。
 
-The process is asynchronous and the `result` function will be called when it's done. If the request succeeded, an array containing the list of loaded servers will be passed to the function, otherwise `null` will be passed.
+此过程是异步的，完成后将调用`result`函数。如果请求成功，将向函数传递包含加载的服务器列表的数组，否则将传递`null`。
 
 ##### getSelectedServer()
 
-Returns the selected server (multiple points of test)
+返回选定的服务器（多测试点）
 
 ##### setSelectedServer()
 
-Manually selects one of the test points (multiple points of test)
+手动选择测试点之一（多测试点）
 
 ##### selectServer(result)
 
-Automatically selects a server from the list of added test points. The server with the lowest ping will be chosen. (multiple points of test)
+从添加的测试点列表中自动选择服务器。将选择ping最低的服务器。（多测试点）
 
-The selector checks multiple servers in parallel (default: 6 streams) to speed things up if the list of servers is long.
+如果服务器列表很长，选择器会并行检查多个服务器（默认：6个流）以加快速度。
 
-The process is asynchronous and the passed `result` callback function will be called when it's done, then the test can be started.
+此过程是异步的，完成后将调用传递的`result`回调函数，然后可以开始测试。
 
 ##### start()
 
-Starts the test.
+开始测试。
 
-Note (multiple points of test): the selected server will be added to the `telemetry_extra` string. If this string was already set, then `telemetry_extra` will be a JSON string containing both the server and the original string
+注意（多测试点）：选定的服务器将添加到`telemetry_extra`字符串中。如果此字符串已设置，则`telemetry_extra`将是包含服务器和原始字符串的JSON字符串
 
-During the test, the `onupdate(data)` callback function will be called periodically with data from the worker.
-At the end of the test, the `onend(aborted)` function will be called with a boolean telling you if the test was aborted or if it ended normally.
+测试期间，`onupdate(data)`回调函数将定期被调用，接收来自工作线程的数据。
+测试结束时，将调用`onend(aborted)`函数，传入一个布尔值，告诉您测试是被中止还是正常结束。
 
 ##### abort()
 
-Aborts the test while it's running.
+在测试运行时中止测试。
 
 ### `speedtest_worker.js`
 
-This is where the actual speed test code is. It receives the settings from the main thread, runs the test, and reports back the results.
+这是实际速度测试代码所在的地方。它从主线程接收设置，运行测试，并报告结果。
 
-The worker accepts 3 commands:
+工作线程接受3个命令：
 
-* `start`: starts the test. Optionally, test settings can be passed as a JSON string after the word start and a space
-* `status`: returns the current status as a JSON string. The status string contents are the ones described in the Event handlers section in the section about making a custom front-end.
-* `abort`: aborts the test
+* `start`: 开始测试。可选地，测试设置可以作为JSON字符串在start和空格后传递
+* `status`: 以JSON字符串形式返回当前状态。状态字符串内容与制作自定义前端部分中的事件处理程序部分中描述的相同。
+* `abort`: 中止测试
 
-#### Parameters
+#### 参数
 
-In addition to the parameters listed in the Test settings section in the section about making a custom front-end, there is one additional setting:
+除了制作自定义前端部分的测试设置部分中列出的参数外，还有一个额外的设置：
 
-* `mpot`: set this to true to run the test with multiple points of test. This will add `cors=true` to all requests (all responses will contain CORS headers) and enable some extra quirks.
-    Default: `false`
+* `mpot`: 设置为true可使用多测试点运行测试。这将向所有请求添加`cors=true`（所有响应将包含CORS头）并启用一些额外的优化。
+    默认值: `false`
 
-#### Download test
+#### 下载测试
 
-The download test is performed by transferring large blobs of garbage data using XHR from the server to the client.
+下载测试通过使用XHR将大型垃圾数据blob从服务器传输到客户端来执行。
 
-The test uses multiple streams. If a stream finishes the download, it is restarted. The amount of downloaded data for each stream is tracked using the XHR Level 2 `onprogress` event.
+测试使用多个流。如果一个流完成下载，它将重新启动。每个流的下载数据量使用XHR Level 2 `onprogress`事件进行跟踪。
 
-The test streams are not perfectly synchronized because we don't want them to finish all at the same time if they do.
+测试流并不完全同步，因为我们不希望它们在完成时同时结束（如果它们这样做的话）。
 
-Every 200ms, a timer updates the `dlStatus` string with the current speed and calculates a "bonus" time by which to shorten the test depending on how high the speed is, (when `time_auto` is set to `true`).
+每200ms，一个计时器会使用当前速度更新`dlStatus`字符串，并根据速度的高低计算一个"奖励"时间来缩短测试（当`time_auto`设置为`true`时）。
 
-See the code for more implementation details.
+有关更多实现细节，请参见代码。
 
-#### Upload test
+#### 上传测试
 
-This works similarly to the download test, but in reverse. A large blob of garbage data is generated and it is sent to the server repeatedly using multiple streams.
+这与下载测试类似，但方向相反。生成一个大型垃圾数据blob，并使用多个流重复发送到服务器。
 
-To keep track of the amount of transferred data, the XHR Level 2 `upload.onprogress` event is used.
+为了跟踪传输的数据量，使用XHR Level 2 `upload.onprogress`事件。
 
-This test has a couple of complications:
+此测试有几个复杂之处：
 
-* Some browsers don't have a working `upload.onprogress` event. For this, we use a small blobs instead of a large one and we keep track of progress using the `onload` event. This is referred to as IE11 Workaround (but the same bug was also found in some versions of Edge and Safari)
-* When `mpot` is set to `true`, an empty request must first be sent in order to load the CORS headers before the test can start
+* 某些浏览器没有正常工作的`upload.onprogress`事件。为此，我们使用小blob而不是大blob，并使用`onload`事件跟踪进度。这被称为IE11解决方法（但在某些版本的Edge和Safari中也发现了相同的错误）
+* 当`mpot`设置为`true`时，必须先发送一个空请求以加载CORS头，然后才能开始测试
 
-See the code for more implementation details.
+有关更多实现细节，请参见代码。
 
-#### Ping + Jitter test
+#### Ping + Jitter测试
 
-The Ping/Jitter test __is NOT an ICMP ping__. This is a common misconception. You cannot use ICMP over HTTP, and certainly not in a browser.
+Ping/Jitter测试__不是ICMP ping__。这是一个常见的误解。您不能通过HTTP使用ICMP，当然也不能在浏览器中使用。
 
-This test works by creating a persistent HTTP connection to the server, and then repeatedly downloading an empty file, and measuring how long it takes between the request and the response.
+此测试通过创建到服务器的持久HTTP连接，然后重复下载一个空文件，并测量请求和响应之间的时间来工作。
 
-Timing can be measured as a simple timestamp difference or with the Performance API if available.
+计时可以作为简单的时间戳差异测量，或者如果可用，使用Performance API。
 
-Jitter is the variance in ping times.
+Jitter是ping时间的方差。
 
-See the code for more implementation details.
+有关更多实现细节，请参见代码。
 
-### `backend` files
+### `backend`文件
 
 #### `garbage.php`
 
-Uses OpenSSL to generate a stream of incompressible garbage data for the download test.
+使用OpenSSL为下载测试生成不可压缩的垃圾数据流。
 
-If accepts a `ckSize` GET parameter, which specifies how much garbage data to generate in megabytes (4-1024).
+它接受一个`ckSize` GET参数，指定要生成的垃圾数据量（以MB为单位，4-1024）。
 
 #### `empty.php`
 
-An empty file used for the upload and ping test. It only sends headers to create the connection.
+用于上传和ping测试的空文件。它只发送头来创建连接。
 
 #### `getIP.php`
 
-Returns client IP, ISP and distance from the server.
+返回客户端IP、ISP和与服务器的距离。
 
-GET parameters:
+GET参数：
 
-* `isp`: if set, fetches ISP info from ipinfo.io
-* `distance`: if set, calculates distance from server. You can specify `km` or `mi` for the format.
+* `isp`: 如果设置，从ipinfo.io获取ISP信息
+* `distance`: 如果设置，计算与服务器的距离。您可以指定`km`或`mi`作为格式。
 
-If `isp` is set, the output is a JSON string containing:
+如果设置了`isp`，输出是一个包含以下内容的JSON字符串：
 
-* `processedString`: string that can be displayed to the user
-* `rawIspInfo`: info about the client as a JSON string, straight from ipinfo.io
+* `processedString`: 可以显示给用户的字符串
+* `rawIspInfo`: 关于客户端的信息，作为JSON字符串，直接来自ipinfo.io
 
-If `isp` is not set, the output is just a string containing the client's IP address.
+如果未设置`isp`，输出只是包含客户端IP地址的字符串。
 
-Note: if your server is behind some proxy, firewall, VPN, etc., the client's IP address may not be detected properly. If this happens, you must analyze the traffic coming from the client to find the name of the HTTP header that contains the original IP address. `getIP.php` contains some of these headers but not all of them.
+注意：如果您的服务器位于某些代理、防火墙、VPN等后面，可能无法正确检测客户端的IP地址。如果发生这种情况，您必须分析来自客户端的流量，以找到包含原始IP地址的HTTP头的名称。`getIP.php`包含其中一些头，但不是全部。
 
-#### CORS headers
+#### CORS头
 
-All these files will send the following CORS headers if the GET parameter `cors=true` is passed to them:
+如果向这些文件传递GET参数`cors=true`，它们将发送以下CORS头：
 
 ```header
 Access-Control-Allow-Origin: *
@@ -757,95 +333,95 @@ Access-Control-Allow-Methods: GET, POST
 Access-Control-Allow-Headers: Content-Encoding, Content-Type
 ```
 
-### `results` files
+### `results`文件
 
 #### `telemetry.php`
 
-This file stores telemetry information into the database.
+此文件将遥测信息存储到数据库中。
 
-Data is passed as POST parameters:
+数据作为POST参数传递：
 
-* `ispinfo`: ISP info (if enabled, empty string otherwise)
-* `extra`: the `telemetry_extra` string passed to the worker (if set, empty string otherwise)
-* `dl`: download speed
-* `ul`: upload speed
-* `ping`: ping time
-* `jitter`: jitter value
-* `log`: telemetry log (if `telemetry_level` is set to `full` or higher, empty string otherwise)
+* `ispinfo`: ISP信息（如果启用，否则为空字符串）
+* `extra`: 传递给工作线程的`telemetry_extra`字符串（如果设置，否则为空字符串）
+* `dl`: 下载速度
+* `ul`: 上传速度
+* `ping`: ping时间
+* `jitter`: jitter值
+* `log`: 遥测日志（如果`telemetry_level`设置为`full`或更高，否则为空字符串）
 
 #### `index.php`
 
-Generates a shareable results image for a given test ID.
+为给定的测试ID生成可共享的结果图像。
 
-GET parameters:
+GET参数：
 
-* `id`: ID of the test you want to display
+* `id`: 要显示的测试的ID
 
-The looks of this image can be customized by editing the variables in this file.
+此图像的外观可以通过编辑此文件中的变量来自定义。
 
 #### `idObfuscation.php`
 
-Contains the implementation of ID obfuscation and deobfuscation.
+包含ID混淆和解混淆的实现。
 
-See the code for the implementation details, it's basically a bunch of bitwise operations.
+有关实现细节，请参见代码，它基本上是一系列位操作。
 
 #### `stats.php`
 
-Simple UI to display and search test results. Not required to run the test.
+用于显示和搜索测试结果的简单UI。运行测试不需要此文件。
 
-## Alternative backends
+## 替代后端
 
-If for some reason you can't or don't want to use PHP, the speed test can run with other backends, or even no backend (with limited functionality).
+如果由于某种原因您不能或不想使用PHP，速度测试可以与其他后端甚至无后端（功能有限）一起运行。
 
-You will need replacements for `backend/garbage.php` and `backend/empty.php` and optionally `backend/getIP.php`, and the test needs to know where to find them:
+您将需要替换`backend/garbage.php`和`backend/empty.php`，以及可选的`backend/getIP.php`，并且测试需要知道在哪里找到它们：
 
 ```js
-//Speed test initialization
+//速度测试初始化
 var s=new Speedtest();
 ...
-//Custom backend
-s.setParameter("url_dl","URL to your garbage.php replacement");
-s.setParameter("url_ul","URL to your empty.php replacement");
-s.setParameter("url_ping","URL to your empty.php replacement");
-s.setParameter("url_getIp","URL to your getIP.php replacement");
+//自定义后端
+setParameter("url_dl","您的garbage.php替代品的URL");
+s.setParameter("url_ul","您的empty.php替代品的URL");
+s.setParameter("url_ping","您的empty.php替代品的URL");
+s.setParameter("url_getIp","您的getIP.php替代品的URL");
 ```
 
-### Replacement for `garbage.php`
+### `garbage.php`的替代品
 
-A replacement for `garbage.php` must generate incompressible garbage data.
+`garbage.php`的替代品必须生成不可压缩的垃圾数据。
 
-A large file (10-100 Mbytes) is a possible replacement. You can get one [here](http://downloads.fdossena.com/geth.php?r=speedtest-bigfile).
+一个大文件（10-100 MB）是可能的替代品。您可以在此处获取一个[http://downloads.fdossena.com/geth.php?r=speedtest-bigfile](http://downloads.fdossena.com/geth.php?r=speedtest-bigfile)。
 
-A symlink to `/dev/urandom` is also ok.
+指向`/dev/urandom`的符号链接也是可以的。
 
-If you want to make your own backend, see the section on the implementation details of `garbage.php`.
+如果您想制作自己的后端，请参见`garbage.php`的实现细节部分。
 
-#### Replacement for `empty.php`
+#### `empty.php`的替代品
 
-Your replacement must simply respond with a HTTP code 200 and send nothing else. You may want to send additional headers to disable caching. The test assumes that `Connection:keep-alive` is sent by the server.
+您的替代品必须简单地响应HTTP代码200，不发送其他内容。您可能希望发送额外的头来禁用缓存。测试假设服务器发送`Connection:keep-alive`。
 
-An empty file can be used for this.
+一个空文件可以用于此目的。
 
-If you want to make your own backend, see the section on the implementation details of `empty.php`.
+如果您想制作自己的后端，请参见`empty.php`的实现细节部分。
 
-#### Replacement for `getIP.php`
+#### `getIP.php`的替代品
 
-Your replacement can simply respond with the client's IP as plaintext or do something more fancy.
+您的替代品可以简单地以纯文本形式响应客户端的IP，或者做更复杂的事情。
 
-If you want to make your own backend, see the section on the implementation details of `getIP.php`.
+如果您想制作自己的后端，请参见`getIP.php`的实现细节部分。
 
-### No backend
+### 无后端
 
-The speed test can run, albeit with limited functionality, using only a web server as backend, with no PHP or other server-side scripting.
+速度测试可以运行，尽管功能有限，仅使用Web服务器作为后端，没有PHP或其他服务器端脚本。
 
-You will be able to run the download and upload test, but no IP, ISP and distance detection, no telemetry and results sharing, and only a single point of test.
+您将能够运行下载和上传测试，但没有IP、ISP和距离检测，没有遥测和结果共享，只有一个测试点。
 
-To do this, you will need:
+要做到这一点，您需要：
 
-* A replacement for `garbage.php`: a large incompressible file, like [this](http://downloads.fdossena.com/geth.php?r=speedtest-bigfile). We'll call this `backend/garbage.dat`
-* A replacement for `empty.php`: an empty file will do. We'll call this `backend/empty.dat`
+* `garbage.php`的替代品：一个大的不可压缩文件，如[这个](http://downloads.fdossena.com/geth.php?r=speedtest-bigfile)。我们将其称为`backend/garbage.dat`
+* `empty.php`的替代品：一个空文件即可。我们将其称为`backend/empty.dat`
 
-Now you need to configure the test to use them. Look for `s=new Speedtest()` and right below it, put the following:
+现在，您需要配置测试以使用它们。找到`s=new Speedtest()`并在其下方放置以下内容：
 
 ```js
 s.setParameter("url_dl","backend/garbage.dat");
@@ -854,52 +430,52 @@ s.setParameter("url_ping","backend/empty.dat");
 s.setParameter("test_order","P_D_U");
 ```
 
-This will point to our static files and set the test to only do ping/jitter, download and upload tests.
+这将指向我们的静态文件，并将测试设置为仅执行ping/jitter、下载和上传测试。
 
-## Troubleshooting
+## 故障排除
 
-These are the most common issues reported by users, and how to fix them. If you still need help, contact me at [info@fdossena.com](mailto:info@fdossena.com).
+以下是用户报告的最常见问题以及如何解决它们。如果您仍然需要帮助，请通过[info@fdossena.com](mailto:info@fdossena.com)联系我。
 
-### Download test gives very low result
+### 下载测试结果非常低
 
-Are garbage.php and empty.php (or your replacements) reachable?
-Press F12, select network and start the test. Do you see errors? (cancelled requests are not errors)
-If a small download starts, open it in a text editor. Does it say it's missing openssl_random_pseudo_bytes()? In this case, install OpenSSL (this is usually included when you install Apache and PHP on most distros).
+garbage.php和empty.php（或您的替代品）是否可达？
+按F12，选择网络并开始测试。您是否看到错误？（取消的请求不是错误）
+如果开始了小下载，在文本编辑器中打开它。它是否说缺少openssl_random_pseudo_bytes()？在这种情况下，安装OpenSSL（在大多数发行版上安装Apache和PHP时通常会包含）。
 
-#### Upload test is inaccurate, and/or I see lag spikes
+#### 上传测试不准确，和/或我看到延迟峰值
 
-Check your server's maximum POST size, make sure it's at least 20Mbytes, possibly more
+检查您的服务器的最大POST大小，确保它至少为20MB，可能更多
 
-#### Download and/or upload results are slightly too optimistic
+#### 下载和/或上传结果略过乐观
 
-The test was fine tuned to run over a typical IPv4 internet connection. If you're using it under different conditions, see the `overheadCompensationFactor` parameter.
+测试经过微调，以在典型的IPv4互联网连接上运行。如果您在不同条件下使用它，请参见`overheadCompensationFactor`参数。
 
-#### All tests are wrong, give extremely high results, browser lags/crashes
+#### 所有测试都错误，给出极高的结果，浏览器滞后/崩溃
 
-You're running the test on localhost, therefore it is trying to measure the speed of your loopback interface. The test is meant to be run over an Internet connection, from a different machine.
+您正在localhost上运行测试，因此它试图测量环回接口的速度。测试旨在通过互联网连接从不同的机器上运行。
 
-#### Ping test shows double the actual ping
+#### Ping测试显示实际ping的两倍
 
-Make sure your server is sending the `Connection:keep-alive` header
+确保您的服务器正在发送`Connection:keep-alive`头
 
-#### The server is behind a load balancer, proxy, etc. and I get the wrong IP address
+#### 服务器位于负载均衡器、代理等后面，我得到错误的IP地址
 
-Edit getIP.php and replace lines 14-23 with what is more appropriate in your scenario.
-Example: `$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];`
+编辑getIP.php并将第14-23行替换为更适合您场景的内容。
+例如：`$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];`
 
-#### The results sharing just generates a blank image
+#### 结果共享只生成空白图像
 
-If the image doesn't display and the browser displays a broken image icon, FreeType2 is not installed or configured properly.
-If the image is blank, this usually happens because PHP can't find the font files inside the `results` folder. You can fix your PHP config or edit `results/index.php` and use absolute paths for the fonts. This is a [known issue with PHP](http://php.net/manual/en/function.imagefttext.php) and no real solution is known.
+如果图像不显示，浏览器显示损坏的图像图标，则FreeType2未正确安装或配置。
+如果图像是空白的，这通常是因为PHP无法在`results`文件夹中找到字体文件。您可以修复PHP配置或编辑`results/index.php`并为字体使用绝对路径。这是[PHP的已知问题](http://php.net/manual/en/function.imagefttext.php)，没有已知的真正解决方案。
 
-#### My server is behind Cloudflare and I can't reach full speed on some of the tests
+#### 我的服务器位于Cloudflare后面，我无法在某些测试上达到全速
 
-This is not a speed test related issue, as it can be replicated in virtually any HTTP file upload/download.
-Go to your domain's DNS settings and change "DNS and HTTP proxy (CDN)" to "DNS only", and wait for the settings to be applied (can take a few minutes).
+这不是与速度测试相关的问题，因为它几乎可以在任何HTTP文件上传/下载中复制。
+转到您域名的DNS设置，将"DNS和HTTP代理（CDN）"更改为"仅DNS"，并等待设置应用（可能需要几分钟）。
 
-#### On Windows Server, using IIS, the upload test doesn't work, CORS errors are visible in the console
+#### 在Windows Server上，使用IIS，上传测试不起作用，控制台中可见CORS错误
 
-This is a configuration issue. Make a file called web.config in wwwroot and adapt the following code:
+这是配置问题。在wwwroot中创建一个名为web.config的文件，并调整以下代码：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -923,43 +499,43 @@ This is a configuration issue. Make a file called web.config in wwwroot and adap
 </configuration>
 ```
 
-#### ID obfuscation doesn't work (incorrect output, blank results image)
+#### ID混淆不起作用（输出不正确，结果图像空白）
 
-ID obfuscation only works on 64-bit PHP (requires PHP_INT_SIZE to be 8).
-Note that older versions of PHP 5 on Windows use PHP_INT_SIZE of 4, even if they're 64 bit. If you're in this situation, update your PHP install.
+ID混淆仅在64位PHP上工作（需要PHP_INT_SIZE为8）。
+请注意，Windows上较旧版本的PHP 5即使是64位，也使用PHP_INT_SIZE为4。如果您处于这种情况，请更新您的PHP安装。
 
-Also, make sure that the web server has write permission on the `results` folder.
+此外，确保Web服务器对`results`文件夹有写入权限。
 
-## Known bugs and limitations
+## 已知的错误和限制
 
-### General
+### 一般
 
-* The ping/jitter test is measured by seeing how long it takes for an empty XHR to complete. It is not an actual ICMP ping. Different browsers may also show different results, especially on very fast connections on slow devices.
+* ping/jitter测试通过查看空XHR完成所需的时间来测量。它不是实际的ICMP ping。不同的浏览器也可能显示不同的结果，特别是在慢速设备上的非常快的连接上。
 
-### IE specific
+### IE特定
 
-* The upload test is not precise on very fast connections with high latency (will probably be fixed by Edge 17)
-* On IE11, a same origin policy error is erroneously triggered under unknown conditions. Seems to be related to running the test from unusual URLs like a top level domain (for instance <http://abc/speedtest>). These are bugs in IE11's implementation of the same origin policy, not in the speed test itself.
-* On IE11, under unknown circumstances, on some systems the test can only be run once, after which speedtest_worker.js will not be loaded by IE until the browser is restarted. This is a rare bug in IE11.
+* 在具有高延迟的非常快的连接上，上传测试不精确（可能会被Edge 17修复）
+* 在IE11上，在未知条件下错误地触发相同来源策略错误。似乎与从非标准URL（例如顶级域名<http://abc/speedtest>）运行测试有关。这些是IE11的相同来源策略实现中的错误，而不是速度测试本身的错误。
+* 在IE11上，在未知情况下，在某些系统上测试只能运行一次，之后IE直到重新启动浏览器才会加载speedtest_worker.js。这是IE11的罕见错误。
 
-### Firefox specific
+### Firefox特定
 
-* On some Linux systems with hardware acceleration turned off, the page rendering makes the browser lag, reducing the accuracy of the ping/jitter test, and potentially even the download and upload tests on very fast connections.
+* 在某些关闭硬件加速的Linux系统上，页面渲染使浏览器滞后，降低ping/jitter测试的准确性，甚至可能降低非常快连接上的下载和上传测试的准确性。
 
-## Contributing
+## 贡献
 
-Since this is an open source project, you can modify it.
+由于这是一个开源项目，您可以修改它。
 
-If you made some changes that you think should make it into the main project, send a Pull Request on GitHub, or contact me at [info@fdossena.com](mailto:info@fdossena.com).
-We don't require you to use a specific coding convention, write the code however you want and we'll change the formatting if necessary.
+如果您做了一些您认为应该进入主项目的更改，请在GitHub上发送Pull Request，或通过[info@fdossena.com](mailto:info@fdossena.com)联系我。
+我们不要求您使用特定的编码约定，以任何您想要的方式编写代码，我们将在必要时更改格式。
 
-Donations are also appreciated: you can donate with [PayPal](https://www.paypal.me/sineisochronic) or [Liberapay](https://liberapay.com/fdossena/donate).
+捐赠也很受欢迎：您可以通过[PayPal](https://www.paypal.me/sineisochronic)或[Liberapay](https://liberapay.com/fdossena/donate)捐赠。
 
-## License
+## 许可证
 
-This software is under the GNU LGPL license, Version 3 or newer.
+此软件受GNU LGPL许可证版本3或更新版本的保护。
 
-To put it short: you are free to use, study, modify, and redistribute this software and modified versions of it, for free or for money.
-You can also use it in proprietary software but all changes to this software must remain under the same GNU LGPL license.
+简而言之：您可以免费使用、学习、修改和重新分发此软件和其修改版本，无论是免费还是收费。
+您也可以在专有软件中使用它，但对此软件的所有更改必须保持在相同的GNU LGPL许可证下。
 
-Contact me at [info@fdossena.com](mailto:info@fdossena.com) for other licensing models.
+有关其他许可模式，请通过[info@fdossena.com](mailto:info@fdossena.com)联系我。
