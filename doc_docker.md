@@ -1,6 +1,6 @@
 # 使用Docker镜像
 
-LibreSpeed的Docker版本可在此处获取：[GitHub Packages](https://github.com/librespeed/speedtest/pkgs/container/speedtest)
+LibreSpeed的Docker版本可在此处获取（原版，未翻译）：[GitHub Packages](https://github.com/librespeed/speedtest/pkgs/container/speedtest)
 
 # Alpine Linux变体
 
