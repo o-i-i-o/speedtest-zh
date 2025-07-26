@@ -2,98 +2,96 @@
 
 # LibreSpeed
 
-No Flash, No Java, No Websocket, No Bullshit.
+无需Flash，无需Java，无需Websocket，拒绝花里胡哨。
 
-This is a very lightweight speed test implemented in Javascript, using XMLHttpRequest and Web Workers.
+这是一个非常轻量级的速度测试工具，使用Javascript、XMLHttpRequest和Web Workers实现。
 
-## Try it
+## 立即试用
 
-[Take a speed test](https://librespeed.org)
+[进行速度测试](https://librespeed.org)
 
-## Compatibility
+## 兼容性
 
-All modern browsers are supported: IE11, latest Edge, latest Chrome, latest Firefox, latest Safari.
-Works with mobile versions too.
+支持所有现代浏览器：IE11、最新版Edge、最新版Chrome、最新版Firefox、最新版Safari。
+移动版本同样适用。
 
-## Features
+## 功能特点
 
-* Download
-* Upload
-* Ping
-* Jitter
-* IP Address, ISP, distance from server (optional)
-* Telemetry (optional)
-* Results sharing (optional)
-* Multiple Points of Test (optional)
+* 下载速度测试
+* 上传速度测试
+* 延迟测试(Ping)
+* 抖动测试(Jitter)
+* IP地址、互联网服务提供商(ISP)、与服务器的距离（可选）
+* 遥测数据收集（可选）
+* 测试结果分享（可选）
+* 多测试点支持（可选）
 
-![Screenrecording of a running Speedtest](https://speedtest.fdossena.com/mpot_v6.gif)
+![速度测试运行截图](https://speedtest.fdossena.com/mpot_v6.gif)
 
-## Server requirements
+## 服务器要求
 
-* A reasonably fast web server with Apache 2 (nginx, IIS also supported)
-* PHP 5.4 or newer (other backends also available)
-* MariaDB or MySQL database to store test results (optional, Microsoft SQL Server, PostgreSQL and SQLite also supported)
-* A fast! internet connection
+* 性能良好的Web服务器（Apache 2，也支持nginx、IIS）
+* PHP 5.4或更高版本（也支持其他后端）
+* MariaDB或MySQL数据库用于存储测试结果（可选，也支持Microsoft SQL Server、PostgreSQL和SQLite）
+* 高速互联网连接
 
-## Installation
+## 安装方法
 
-Assuming you have PHP and a web server installed, the installation steps are quite simple.
+假设您已经安装了PHP和Web服务器，安装步骤非常简单。
 
-1. Download the source code and extract it
-1. Copy the following files to your web server's shared folder (ie. /var/www/html/speedtest for Apache): index.html, speedtest.js, speedtest_worker.js, favicon.ico and the backend folder
-1. Optionally, copy the results folder too, and set up the database using the config file in it.
-1. Be sure your permissions allow execute (755).
-1. Visit YOURSITE/speedtest/index.html and voila!
+1. 下载源代码并解压
+2. 将以下文件复制到Web服务器的共享文件夹（例如Apache的/var/www/html/speedtest）：index.html、speedtest.js、speedtest_worker.js、favicon.ico和backend文件夹
+3. （可选）复制results文件夹，并使用其中的配置文件设置数据库
+4. 确保您的权限允许执行（755）
+5. 访问YOURSITE/speedtest/index.html，即可开始使用！
 
-### Installation Video
+### 安装视频
 
-This video shows the installation process of a standalone LibreSpeed server: [Quick start installation guide for Debian 12](https://fdossena.com/?p=speedtest/quickstart_deb12.frag)
+这段视频展示了独立LibreSpeed服务器的安装过程：[Debian 12快速入门安装指南](https://fdossena.com/?p=speedtest/quickstart_deb12.frag)
 
-More videos will be added later.
+后续将添加更多视频。
 
-## Android app
+## Android应用
 
-A template to build an Android client for your LibreSpeed installation is available [here](https://github.com/librespeed/speedtest-android).
+用于构建LibreSpeed Android客户端的模板可在[此处](https://github.com/librespeed/speedtest-android)获取。
 
-## CLI client
+## 命令行客户端
 
-A command line client is available [here](https://github.com/librespeed/speedtest-cli).
+命令行客户端可在[此处](https://github.com/librespeed/speedtest-cli)获取。
 
 ## Docker
 
-A docker image is available on [GitHub](https://github.com/librespeed/speedtest/pkgs/container/speedtest), check our [docker documentation](doc_docker.md) for more info about it.
-The image is built every week to include an updated version of the ipinfo-DB used for ISP detection. Also this ensures, that the latest security patches in PHP are installed. Therefore we recommend to use the `latest` image.
+Docker镜像可在[GitHub](https://github.com/librespeed/speedtest/pkgs/container/speedtest)上获取，请查看我们的[Docker文档](doc_docker.md)了解更多信息。
+该镜像每周构建一次，以包含更新的ipinfo-DB用于ISP检测。这也确保安装了PHP的最新安全补丁。因此，我们建议使用`latest`镜像。
 
-## Go backend
+## Go后端
 
-A Go implementation is available in the [`speedtest-go`](https://github.com/librespeed/speedtest-go) repo, maintained by [Maddie Zhan](https://github.com/maddie).
+Go实现可在[`speedtest-go`](https://github.com/librespeed/speedtest-go)仓库中找到，由[Maddie Zhan](https://github.com/maddie)维护。
 
-## Rust backend
+## Rust后端
 
-A Rust implementation is available in the [`speedtest-rust`](https://github.com/librespeed/speedtest-rust) repo, maintained by [Sudo Dios](https://github.com/sudodios).
+Rust实现可在[`speedtest-rust`](https://github.com/librespeed/speedtest-rust)仓库中找到，由[Sudo Dios](https://github.com/sudodios)维护。
 
-## Node.js backend
+## Node.js后端
 
-A partial Node.js implementation is available in the `node` branch, developed by [dunklesToast](https://github.com/dunklesToast). It's not recommended to use at the moment.
+部分Node.js实现可在`node`分支中找到，由[dunklesToast](https://github.com/dunklesToast)开发。目前不建议使用。
 
-## Donate
+## 捐赠
 
-[![Donate with Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/fdossena/donate)
-[Donate with PayPal](https://www.paypal.me/sineisochronic)
+[![使用Liberapay捐赠](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/fdossena/donate)
+[使用PayPal捐赠](https://www.paypal.me/sineisochronic)
 
-## License
+## 许可证
 
-Copyright (C) 2016-2024 Federico Dossena
+版权所有 (C) 2016-2024 Federico Dossena
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+本程序是自由软件：您可以重新分发和/或修改
+它根据GNU Lesser General Public License的条款，由自由软件基金会发布，
+无论是版本3的许可证，还是（根据您的选择）任何更高版本。
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+本程序的分发是希望它会有用，
+但没有任何保证；甚至没有暗示的保证适销性或特定用途的适用性。
+请参阅GNU通用公共许可证以获取更多详细信息。
 
-You should have received a copy of the GNU Lesser General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/lgpl>.
+您应该已经收到了GNU Lesser General Public License的副本
+与本程序一起。如果没有，请参阅<https://www.gnu.org/licenses/lgpl>。
