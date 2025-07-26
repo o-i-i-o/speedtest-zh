@@ -41,9 +41,10 @@
 
 1. 下载源代码并解压
 2. 将以下文件复制到Web服务器的共享文件夹（例如Apache的/var/www/html/speedtest）：index.html、speedtest.js、speedtest_worker.js、favicon.ico和backend文件夹
-3. （可选）复制results文件夹，并使用其中的配置文件设置数据库
-4. 确保您的权限允许执行（755）
-5. 访问YOURSITE/speedtest/index.html，即可开始使用！
+3. （可选）如果使用nginx作为前端，我（oi-io）在项目根目录提供了一个nginx配置实例文件speedtest-zh.conf，请参考其配置nginx启用php
+4. （可选）复制results文件夹，并使用其中的配置文件设置数据库
+5. 确保您的权限允许执行（755）
+6. 访问YOURSITE/speedtest/index.html，即可开始使用！
 
 ### 安装视频
 
@@ -90,8 +91,8 @@ Rust实现可在[`speedtest-rust`](https://github.com/librespeed/speedtest-rust)
 无论是版本3的许可证，还是（根据您的选择）任何更高版本。
 
 本程序的分发是希望它会有用，
-但没有任何保证；甚至没有暗示的保证适销性或特定用途的适用性。
+但不做任何保证；甚至没有暗示的保证适销性或特定用途的适用性。
 请参阅GNU通用公共许可证以获取更多详细信息。
 
-您应该已经收到了GNU Lesser General Public License的副本
-与本程序一起。如果没有，请参阅<https://www.gnu.org/licenses/lgpl>。
+您应该已经与本程序一起收到了GNU Lesser General Public License的副本
+。如果没有，请参阅<https://www.gnu.org/licenses/lgpl>。
