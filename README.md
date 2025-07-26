@@ -53,6 +53,8 @@
 
 后续将添加更多视频。
 
+### 基于尊重著作权的原则（即使是开源软件），本分支选择在没有对原版做出重大更改之前尽量和原版的所有文件、样式保持一致，但是目前只翻译了LibreSpeed本身，下面列举的版本未做翻译。
+
 ## Android应用
 
 用于构建LibreSpeed Android客户端的模板可在[此处](https://github.com/librespeed/speedtest-android)获取。
