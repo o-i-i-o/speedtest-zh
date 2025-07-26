@@ -90,8 +90,8 @@ Rust实现可在[`speedtest-rust`](https://github.com/librespeed/speedtest-rust)
 它根据GNU Lesser General Public License的条款，由自由软件基金会发布，
 无论是版本3的许可证，还是（根据您的选择）任何更高版本。
 
-本程序的分发是希望它会有用，
-但不做任何保证；甚至没有暗示的保证适销性或特定用途的适用性。
+本程序的分发是希望它起到一定作用，
+但不做任何保证；也没有暗示的保证适销性或特定用途的适用性。
 请参阅GNU通用公共许可证以获取更多详细信息。
 
 您应该已经与本程序一起收到了GNU Lesser General Public License的副本
