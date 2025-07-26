@@ -8,7 +8,8 @@
 
 ## 立即试用
 
-[进行速度测试](https://librespeed.org)
+[进行速度测试](https://librespeed.org)（全是国外节点）
+[国内可参考中科大测速站](https://test.ustc.edu.cn/)
 
 ## 兼容性
 
